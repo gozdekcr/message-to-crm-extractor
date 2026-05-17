@@ -1,0 +1,79 @@
+# Sample customer messages for testing
+
+# Message 1
+Hi, I'm moving to London in September, budget is around £1800, need 2 bedrooms 
+near Canary Wharf, pet friendly ideally.
+
+# Message 2
+Looking for a flat, budget flexible around £1500-1700, somewhere in Zone 2, ASAP.
+
+# Message 3
+Hi! Need a 1 bed in Shoreditch, moving next month.
+
+# Message 4
+Hi!!! moving asap maybe sept/oct, budget maybe 1700ish but can stretch, 
+relocating with my partner and small dog
+
+# Message 5
+Good morning, I am looking for a furnished 2 bedroom flat in Canary Wharf or Isle
+of Dogs. My budget is maximum £2,000 per month. I am a software engineer, moving
+in October. No pets. Available for viewings on weekends.
+
+# Message 6
+Hello, I'm searching for a 1 bedroom apartment in Stratford. Budget max £1600/month.
+Need to move in by 15th August. Furnished preferred.
+
+# Message 7
+Hi there, looking for a 2 bed flat in Canary Wharf, Greenwich or Canning Town.
+Budget around £1900. Moving in November with my partner.
+
+# Message 8
+Good afternoon, I am a first-time buyer looking for a 2 bedroom apartment in East London.
+Budget up to £450,000. Ideally close to public transport.
+
+# Message 9
+Need a studio or 1 bed ASAP in London Bridge area. Can move next week.
+Budget around £1400, flexible.
+
+# Message 10
+Hi, relocating from Manchester to London in October.
+Need 2 bedrooms near Paddington, pet friendly.
+
+# Message 11
+hey! need 2 bed around hackney, budget probs 1800 ish, moving end sept
+
+# Message 12
+Looking for a 1 bedroom flat in Camden.
+Budget around £1700, max can maybe go £2000 if bills included.
+
+# Message 13
+Hello, searching for a furnished 2 bedroom apartment in Kensington or Chelsea.
+Budget up to £4,500 pcm. Move-in date: December.
+
+# Message 14
+Hi, moving with my wife and child in September.
+Need 3 bedrooms near good schools in Richmond. Budget maximum £2800.
+
+# Message 15
+Hi!!! budget maybe 2k?? maybe slightly above if worth it lol
+need 2bed somewhere near canary wharf or maybe stratford
+move oct/nov not sure yet
+
+# Message 16
+Hello, I am an international student starting university in September.
+Looking for a studio near King's Cross, budget around £1300.
+
+# Message 17
+Hi again, just updating my requirements. Now looking for 2 bedrooms instead of 1.
+Budget still max £1750. Preferred area remains Shoreditch.
+
+# Message 18
+Good evening, I am a product manager moving from Dublin in November.
+Looking for a furnished 1 bedroom apartment in Canary Wharf.
+Budget £2100 max, no pets, available for evening viewings only.
+
+# Message 19
+2 bed, Battersea, £2200 max, moving September.
+
+# Message 20
+Thanks, Saturday viewing works for me!

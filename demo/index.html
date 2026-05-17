@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Message-to-CRM Extractor</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Message-to-<em>CRM</em> Extractor</h1>
+      <p class="subtitle">
+        Paste a customer message and watch it transform into a structured CRM
+        profile.
+      </p>
+
+      <div class="main-grid">
+        <div class="left-panel">
+          <textarea
+            id="messageInput"
+            placeholder="e.g. Hi, I'm moving to London in September, budget is around £1800, need 2 bedrooms near Canary Wharf, pet friendly ideally."
+          ></textarea>
+          <button onclick="extractData()">Extract CRM Data →</button>
+        </div>
+        <div class="right-panel" id="output">
+          <p class="placeholder-text">Your CRM profile will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const CRM_KEYWORDS = [
+        "bed",
+        "bedroom",
+        "flat",
+        "apartment",
+        "studio",
+        "budget",
+        "£",
+        "moving",
+        "move",
+        "relocating",
+        "looking for",
+        "need",
+        "searching",
+      ];
+      const APPROXIMATE_KEYWORDS = [
+        "around",
+        "maybe",
+        "ish",
+        "flexible",
+        "roughly",
+        "about",
+      ];
+      const HARD_LIMIT_KEYWORDS = ["max", "maximum", "up to", "no more than"];
+      const LONDON_AREAS = [
+        "Canary Wharf",
+        "Shoreditch",
+        "Hackney",
+        "Stratford",
+        "Kensington",
+        "Chelsea",
+        "Camden",
+        "Paddington",
+        "Battersea",
+        "Richmond",
+        "Greenwich",
+        "Canning Town",
+        "Isle of Dogs",
+        "King's Cross",
+        "London Bridge",
+        "Brixton",
+        "Peckham",
+        "Islington",
+        "Bethnal Green",
+      ];
+
+      function isCrmWorthy(message) {
+        const lower = message.toLowerCase();
+        return CRM_KEYWORDS.some((k) => lower.includes(k));
+      }
+
+      function extractBudget(message) {
+        const lower = message.toLowerCase();
+        let match = message.match(/£([\d,]+)/);
+
+        if (!match) {
+          const kMatch = lower.match(/(\d+\.?\d*)k/);
+          if (kMatch)
+            return {
+              value: parseFloat(kMatch[1]) * 1000,
+              confidence: "approximate",
+            };
+        }
+        if (!match) {
+          const ishMatch = lower.match(/(\d+)\s*ish/);
+          if (ishMatch)
+            return { value: parseInt(ishMatch[1]), confidence: "approximate" };
+        }
+        if (!match) return { value: null, confidence: "unknown" };
+
+        const value = parseInt(match[1].replace(/,/g, ""));
+        if (HARD_LIMIT_KEYWORDS.some((w) => lower.includes(w)))
+          return { value, confidence: "hard_limit" };
+        if (APPROXIMATE_KEYWORDS.some((w) => lower.includes(w)))
+          return { value, confidence: "approximate" };
+        return { value, confidence: "exact" };
+      }
+
+      function extractBedrooms(message) {
+        const lower = message.toLowerCase();
+        if (lower.includes("studio"))
+          return { value: "studio", confidence: "exact" };
+        const match = lower.match(/(\d+)\s*bed/);
+        if (match) return { value: parseInt(match[1]), confidence: "exact" };
+        return { value: null, confidence: "unknown" };
+      }
+
+      function extractArea(message) {
+        const lower = message.toLowerCase();
+        const found = LONDON_AREAS.filter((area) =>
+          lower.includes(area.toLowerCase()),
+        );
+        if (found.length === 0) return { value: null, confidence: "unknown" };
+        if (found.length === 1) return { value: found[0], confidence: "exact" };
+        return { value: found, confidence: "flexible" };
+      }
+
+      function extractMoveDate(message) {
+        const lower = message.toLowerCase();
+        const MONTHS = [
+          "january",
+          "february",
+          "march",
+          "april",
+          "may",
+          "june",
+          "july",
+          "august",
+          "september",
+          "october",
+          "november",
+          "december",
+          "jan",
+          "feb",
+          "mar",
+          "apr",
+          "jun",
+          "jul",
+          "aug",
+          "sept",
+          "oct",
+          "nov",
+          "dec",
+        ];
+        const MONTH_MAP = {
+          jan: "January",
+          feb: "February",
+          mar: "March",
+          apr: "April",
+          may: "May",
+          jun: "June",
+          jul: "July",
+          aug: "August",
+          sept: "September",
+          oct: "October",
+          nov: "November",
+          dec: "December",
+          january: "January",
+          february: "February",
+          march: "March",
+          april: "April",
+          june: "June",
+          july: "July",
+          august: "August",
+          september: "September",
+          october: "October",
+          november: "November",
+          december: "December",
+        };
+        const normalize = (m) => MONTH_MAP[m] || m;
+        const found = MONTHS.filter((m) =>
+          new RegExp("\\b" + m + "\\b").test(lower),
+        );
+        const unique = [...new Set(found)];
+
+        if (unique.length === 0) {
+          if (lower.includes("asap") || lower.includes("next month"))
+            return { value: "ASAP", confidence: "approximate" };
+          return { value: null, confidence: "unknown" };
+        }
+        if (lower.includes("maybe") || lower.includes("/"))
+          return { value: unique.map(normalize), confidence: "approximate" };
+        return { value: normalize(unique[0]), confidence: "exact" };
+      }
+
+      function extractPetFriendly(message) {
+        const lower = message.toLowerCase();
+        if (lower.includes("no pet"))
+          return { value: false, confidence: "exact" };
+        if (["pet", "dog", "cat", "animal"].some((w) => lower.includes(w)))
+          return { value: true, confidence: "exact" };
+        return { value: null, confidence: "unknown" };
+      }
+
+      function extractFurnished(message) {
+        const lower = message.toLowerCase();
+
+        if (lower.includes("unfurnished"))
+          return { value: false, confidence: "exact" };
+
+        if (
+          lower.includes("furnished preferred") ||
+          lower.includes("furnished ideally")
+        )
+          return { value: true, confidence: "approximate" };
+
+        if (lower.includes("furnished"))
+          return { value: true, confidence: "exact" };
+
+        return { value: null, confidence: "unknown" };
+      }
+
+      function extract(message) {
+        if (!isCrmWorthy(message)) return { crm_worthy: false };
+
+        const fields = {
+          budget: extractBudget(message),
+          bedrooms: extractBedrooms(message),
+          area: extractArea(message),
+          move_date: extractMoveDate(message),
+          pet_friendly: extractPetFriendly(message),
+          furnished: extractFurnished(message)
+        };
+
+        const FOLLOW_UP_MAP = {
+          budget: "Could you share your approximate budget?",
+          bedrooms: "How many bedrooms are you looking for?",
+          area: "Do you have a preferred area in London?",
+          move_date: "When are you looking to move in?",
+          pet_friendly: "Do you have any pets?",
+          furnished: "Would you prefer a furnished or unfurnished property?"
+        };
+
+        const missing = Object.keys(fields).filter(
+          (k) => fields[k].value === null,
+        );
+        const follow_up = missing.map((k) => FOLLOW_UP_MAP[k]);
+
+        return {
+          crm_worthy: true,
+          fields,
+          missing_fields: missing,
+          suggested_follow_up: follow_up,
+        };
+      }
+
+      function extractData() {
+        const message = document.getElementById("messageInput").value.trim();
+        if (!message) {
+          alert("Please enter a message.");
+          return;
+        }
+        renderOutput(extract(message));
+      }
+
+      function renderOutput(result) {
+        const output = document.getElementById("output");
+
+        if (!result.crm_worthy) {
+          output.innerHTML = `<div class="not-worthy"><span>⚠️</span><p>This message doesn't contain CRM-relevant information.</p></div>`;
+          return;
+        }
+
+        const confidenceColor = {
+          exact: "#16a34a",
+          approximate: "#d97706",
+          hard_limit: "#4f46e5",
+          flexible: "#7c3aed",
+          unknown: "#9ca3af",
+        };
+
+        const fieldsHTML = Object.entries(result.fields)
+          .map(([key, data]) => {
+            const label = key.replace("_", " ").toUpperCase();
+            const value =
+              data.value === null
+                ? "—"
+                : Array.isArray(data.value)
+                  ? data.value.join(", ")
+                  : data.value === true
+                    ? "Yes"
+                    : data.value === false
+                      ? "No"
+                      : data.value;
+            const color = confidenceColor[data.confidence];
+            const prefix = key === "budget" && data.value ? "£" : "";
+            const suffix = key === "budget" && data.value ? " /mo" : "";
+
+            return `
+            <div class="field-row">
+              <span class="field-label">${label}</span>
+              <span class="field-value">${prefix}${value}${suffix}</span>
+              <span class="confidence-badge" style="background:${color}20; color:${color}">${data.confidence}</span>
+            </div>`;
+          })
+          .join("");
+
+        const followUpHTML =
+          result.suggested_follow_up.length > 0
+            ? `
+          <div class="follow-up">
+            <p class="follow-up-title">Suggested follow-up questions:</p>
+            ${result.suggested_follow_up.map((q) => `<p class="follow-up-item">→ ${q}</p>`).join("")}
+          </div>`
+            : "";
+
+        output.innerHTML = `
+          <div class="crm-card">
+            <div class="crm-card-header">
+              <span class="crm-badge">CRM Ready</span>
+              <span class="missing-count">${result.missing_fields.length} fields missing</span>
+            </div>
+            <div class="fields-list">${fieldsHTML}</div>
+            ${followUpHTML}
+          </div>`;
+      }
+    </script>
+  </body>
+</html>
