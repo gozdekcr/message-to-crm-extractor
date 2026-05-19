@@ -57,7 +57,7 @@ This tool extracts structured CRM data from raw customer messages: budget, locat
 | Budget ceiling | "max £2000" | `£2000 / hard_limit` |
 | Location | "Canary Wharf or Greenwich" | `["Canary Wharf", "Greenwich"] / flexible` |
 | Bedrooms | "2 bedrooms" | `2 / exact` |
-| Move date | "ideally by October" | `October / approximate` |
+| Move date | "maybe October" | `October / approximate` |
 | Pets | "we have a dog" | `yes / exact` |
 | Furnished | "prefer unfurnished" | `unfurnished / exact` |
  
