@@ -3,6 +3,8 @@
 > An AI-assisted tool that converts customer property messages into structured CRM fields. <br>
 > Built as a mini case study for Iceberg Digital.
 
+🔗 [Live Demo](https://gozdekcr.github.io/message-to-crm-extractor/demo)
+
 ![Demo](assets/demo.gif)
 
 ---
