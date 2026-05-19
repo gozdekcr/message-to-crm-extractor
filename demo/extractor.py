@@ -76,6 +76,12 @@ def extract_bedrooms(message):
     if "studio" in message_lower:
         return {"value": "studio", "confidence": "exact"}
 
+    WORD_TO_NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5 , "six" : 6 , "seven" : 7, "eight" : 8 , "nine" : 9 , "ten":10}
+    
+    word_match = re.search(r'\b(' + '|'.join(WORD_TO_NUM.keys()) + r')\s*bed', message_lower)
+    if word_match:
+        return {"value": WORD_TO_NUM[word_match.group(1)], "confidence": "exact"}
+    
     match = re.search(r'(\d+)\s*bed', message_lower)
 
     if match:
@@ -180,9 +186,9 @@ def extract(message):
 
 if __name__ == "__main__":
     test_messages = [
-        "Hi, I'm moving to London in September, budget is around £1800, need 2 bedrooms near Canary Wharf, pet friendly ideally.",
+        "Hi, I'm moving to London in September, budget is around £1800, need two bedrooms near Canary Wharf, pet friendly ideally.",
         "Looking for a flat, budget flexible around £1500-1700, somewhere in Zone 2, ASAP.",
-        "Hi! Need a 1 bed in Shoreditch, moving next month.",
+        "Hi! Need a one bed in Shoreditch, moving next month.",
         "Hi!!! moving asap maybe sept/oct, budget maybe 1700ish but can stretch, relocating with my partner and small dog",
         "Good morning, I am looking for a furnished 2 bedroom flat in Canary Wharf. Budget maximum £2,000. Moving in October. No pets.",
         "Thanks, Saturday viewing works for me!"

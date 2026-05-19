@@ -111,6 +111,25 @@
         const lower = message.toLowerCase();
         if (lower.includes("studio"))
           return { value: "studio", confidence: "exact" };
+
+        const wordToNum = {
+          one: 1,
+          two: 2,
+          three: 3,
+          four: 4,
+          five: 5,
+          six: 6,
+          seven: 7,
+          eight: 8,
+          nine: 9,
+          ten: 10,
+        };
+        const wordMatch = lower.match(
+          /\b(one|two|three|four|five|six|seven|eight|nine|ten)\s*bed/,
+        );
+        if (wordMatch)
+          return { value: wordToNum[wordMatch[1]], confidence: "exact" };
+
         const match = lower.match(/(\d+)\s*bed/);
         if (match) return { value: parseInt(match[1]), confidence: "exact" };
         return { value: null, confidence: "unknown" };
@@ -230,7 +249,7 @@
           area: extractArea(message),
           move_date: extractMoveDate(message),
           pet_friendly: extractPetFriendly(message),
-          furnished: extractFurnished(message)
+          furnished: extractFurnished(message),
         };
 
         const FOLLOW_UP_MAP = {
@@ -239,7 +258,7 @@
           area: "Do you have a preferred area in London?",
           move_date: "When are you looking to move in?",
           pet_friendly: "Do you have any pets?",
-          furnished: "Would you prefer a furnished or unfurnished property?"
+          furnished: "Would you prefer a furnished or unfurnished property?",
         };
 
         const missing = Object.keys(fields).filter(
