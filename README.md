@@ -1,6 +1,7 @@
 # message-to-crm-extractor
 
-> An AI-assisted tool that converts customer property messages into structured CRM fields. Built as a mini case study for Iceberg Digital.
+> An AI-assisted tool that converts customer property messages into structured CRM fields. <br>
+> Built as a mini case study for Iceberg Digital.
 
 ![Demo](assets/demo.gif)
 
@@ -8,14 +9,7 @@
 
 ## Problem Statement
 
-UK estate agents receive customer inquiries from multiple channels such as WhatsApp, email, and property portals.
-
-Many of these messages contain CRM-relevant information including:
-- budget
-- preferred location
-- move-in date
-- bedroom requirements
-- pet or furnishing preferences
+UK estate agents receive customer questions across WhatsApp, email, and property portals. Many of these messages contain actionable CRM data like budget, location, move-in date, bedroom count, pet or furnishing preferences but extracting and logging that data manually is slow and error-prone.
 
 Assumptions:
 - ~30 incoming customer messages per day
@@ -23,8 +17,8 @@ Assumptions:
 - ~2 minutes manual CRM entry per relevant message
 
 This results in:
-- 15–20 minutes of repetitive admin work daily
-- 60+ hours annually spent on manual CRM data entry
+- ~18 minutes of repetitive admin work daily
+- 75+ hours annually spent on manual CRM data entry
 
 Manual entry also increases the risk of:
 - incomplete customer profiles
@@ -40,9 +34,9 @@ This tool extracts structured CRM data from raw customer messages: budget, locat
 - **Missing field detection** : identifies missing customer information
 - **Ambiguity preservation** : "around £1800" stays approximate, not forced into a hard number
 
-> The goal is not to replace the agent. It's to eliminate the 2 minutes of manual data entry so they can focus on the actual conversation.
+> The goal is not to replace the agent. It is to reduce repetitive CRM admin so agents can focus on customer communication.
 
-## User Flow
+## How a User Would Use This
 
 1. Customer message arrives
 2. System checks CRM relevance
@@ -51,38 +45,67 @@ This tool extracts structured CRM data from raw customer messages: budget, locat
 5. Agent reviews output
 6. CRM is updated
 
+## Data Requirements
+ 
+**Input:**
+- Raw customer message text (unstructured, natural language)
+
+**Extracted fields:**
+| Field | Example input | Extracted value |
+|-------|--------------|-----------------|
+| Budget | "around £1800 a month" | `£1800 / approximate` |
+| Budget ceiling | "max £2000" | `£2000 / hard_limit` |
+| Location | "Canary Wharf or Greenwich" | `["Canary Wharf", "Greenwich"] / flexible` |
+| Bedrooms | "2 bedrooms" | `2 / exact` |
+| Move date | "ideally by October" | `October / approximate` |
+| Pets | "we have a dog" | `yes / exact` |
+| Furnished | "prefer unfurnished" | `unfurnished / exact` |
+ 
+**No external data sources are required** for the current implementation. Future versions would integrate with the CRM API to push extracted fields directly into the customer record.
+ 
+---
+
 ## Technical Approach
 
 **Tech Stack**
 - HTML, CSS, JavaScript
 - No backend or external dependencies
 
+> I chose a rule-based approach so the agent can see which field was pulled and why. Transparency was important for building trust during early adoption.
+
 **Extraction Logic**
 - Regex patterns for budget, bedrooms, and dates
-- Rule-based matching for London areas and keywords
-- Confidence flags to handle ambiguous language
+- Rule-based matching for London areas and keywords (pets, furnishing)
+- Ambiguity keywords ("around", "maybe", "ideally", "flexible") trigger `approximate` or `flexible` confidence flags rather than forcing exact values
+- Word-based bedroom extraction: handles both numeric ("2 bedrooms") and written ("two bedrooms") inputs
 
-**Python Version**
-A standalone Python implementation is also included in `demo/extractor.py` , using the same extraction logic for backend integration experiments.
+**Limitation:**
+- Rule-based extraction does not work on irregular sentence construction. A client who writes "*Budget’s not huge, somewhere around two grand*" won’t get captured. So LLM upgrade is a need.
 
-## Confidence Flag System
+**Python Version** 
+- A standalone Python implementation is also included in `demo/extractor.py` , using the same extraction logic for backend integration experiments.
 
-Each extracted field gets a confidence flag to preserve ambiguity rather than forcing false certainty.
+## AI Usage
 
-| Flag | Meaning | Example |
-|------|---------|---------|
-| `exact` | Clearly stated | "2 bedrooms", "No pets" |
-| `approximate` | Vague or estimated | "around £1800", "maybe October" |
-| `hard_limit` | Explicit maximum | "max £2000", "up to £450,000" |
-| `flexible` | Multiple options given | "Canary Wharf or Greenwich" |
-| `unknown` | Not mentioned | No budget in message |
+AI tools were used throughout the ideation and implementation process.
+
+**ChatGPT** and **Claude** were used to:
+- Research common pain points in UK estate agency workflows  
+- Generate and refine the README structure and documentation
+- Shape solution design and scope decisions
+- Iterate on confidence flag definitions and user flow
+
+In all instances, I have been guiding the prompts,evaluating the outputs, and making deliberate decisions on what to include, modify, or exclude. The logic that went into the design of this product,in terms of the problem statement, the confidence flag, and the risk assessment, was developed through iteration.
+
+I also tested the extraction logic manually using sample messages. During testing, I found a bug where "maybe" was incorrectly parsed as the month "May". I then debugged the regex pattern and fixed the issue.
 
 ## Risks & Limitations
 
-- **Incorrect extraction** : unexpected phrasing may be missed. Mitigated by agent review before CRM save.
-- **Ambiguity loss** : "around £1800" must not become a hard limit. Mitigated by confidence flags.
-- **Incomplete extraction** : some details require follow-up. Mitigated by missing field detection.
-- **Low agent trust** : system fails if agents don't use it. Mitigated by editable fields and transparency.
+- **Incorrect extraction** : rule-based patterns may fail on unusual or informal messages. "maybe October" parsed as month "May" *(actual bug found and fixed)*
+- **Ambiguous values** : phrases like "around £1800" or "maybe October" are difficult to interpret exactly.
+- **Missing information** : not all customer details are available in a single message. Message mentions budget but not location. Missing field detection tells the agent what to ask next
+- **User dependency** : the final CRM update still depends on agent review and approval.
+- **Multi-property inquiry** : "Looking for a 2-bed for myself and a 1-bed for my parents" cannot be handled. This would need multi-entity extraction logic
 
 ## Success Metrics
 
@@ -92,7 +115,7 @@ Each extracted field gets a confidence flag to preserve ambiguity rather than fo
 
 ## What I'd Build Next
 
-1. **LLM integration** : more accurate extraction for informal and ambiguous messages
-2. **Multi-turn support** : track follow-up responses and update CRM profile incrementally
-3. **Lead scoring** : rank leads by urgency and profile completeness
-4. **Channel support** : extend to WhatsApp Business API and SMS
+1. **LLM integration** : improve extraction for more informal and complex customer messages.
+2. **Multi-turn support** : update CRM fields across multiple customer messages instead of a single input.
+3. **CRM integration** : connect the extractor directly to CRM systems for automatic field updates.
+4. **More channel support** : support additional platforms such as WhatsApp Business API and SMS.
